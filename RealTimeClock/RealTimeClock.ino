@@ -16,7 +16,7 @@ void setup()
 
   rtc.begin();
   //rtc.adjust(DateTime(F(__DATE__),F(__TIME__)));
-  rtc.adjust(DateTime(2020, 5, 10, 21, 45, 0));
+  //rtc.adjust(DateTime(2020, 5, 11, 19, 57, 0));
   
 
 }
