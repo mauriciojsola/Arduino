@@ -24,8 +24,8 @@ uint8_t DHTPin = D4;
     // Adafruit IO
     #define AIO_SERVER      "io.adafruit.com"
     #define AIO_SERVERPORT  1883
-    #define IO_USERNAME  "mauriciojsola11"
-    #define IO_KEY       "aio_CaOh839EzEf9iY7RTpKWDBLZ6Mtz"
+    #define IO_USERNAME  "IO_USERNAME"
+    #define IO_KEY       "IO_KEY"
 
 
 
