@@ -1,0 +1,21 @@
+
+
+BLUETOOTH AT COMMANDS
+https://www.martyncurrey.com/arduino-with-hc-05-bluetooth-module-at-mode/  CAPO
+
+
+
+https://github.com/bitwiseAr/Curso-Arduino-desde-cero/blob/master/Capitulo24/Capitulo24-Programa1.txt
+
+PROGRAMAR BT
+https://www.youtube.com/watch?v=5SmKOUHhmWk
+
+
+BT EN APP INVENTOR
+https://www.youtube.com/watch?v=aQcJ4uHdQEA&t=676s
+
+
+APP Store
+Bluetooth Serial Controller
+Serial Bluetooth Terminal
+Arduino Bluetooth Controller
