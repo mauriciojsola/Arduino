@@ -6,8 +6,8 @@
 #include "FastLED.h"
 FASTLED_USING_NAMESPACE
 
-#define NUM_LEDS 16
-#define LED_PIN 8
+#define NUM_LEDS 45
+#define LED_PIN 2
 #define COLOR_ORDER GRB
 #define FRAMES_PER_SECOND 100
 //#define MAX_POWER_MILLIAMPS 400
@@ -15,18 +15,27 @@ FASTLED_USING_NAMESPACE
 
 CRGB leds[NUM_LEDS];
 
-SoftwareSerial Bluetooth(0, 1);  // Arduino(RX, TX) - Bluetooth (TX, RX)
+SoftwareSerial Bluetooth(53, 52);  // Arduino(RX, TX) - Bluetooth (TX, RX)
 
 // Initial background color
 // https://www.rapidtables.com/web/color/RGB_Color.html
-byte backR = 128;
-byte backG = 128;
-byte backB = 0;
-
+// Default colors to be able to reset the table to these values
+byte defaultBackR = 128;
+byte defaultBackG = 128;
+byte defaultBackB = 0;
 // Initial reactive color
-byte reactiveR = 10;
-byte reactiveG = 50;
-byte reactiveB = 100;
+byte defaultReactiveR = 10;
+byte defaultReactiveG = 50;
+byte defaultReactiveB = 100;
+
+
+byte backR = defaultBackR;
+byte backG = defaultBackG;
+byte backB = defaultBackB;
+// Initial reactive color
+byte reactiveR = defaultReactiveR;
+byte reactiveG = defaultReactiveG;
+byte reactiveB = defaultReactiveB;
 
 int brightness = 10;  // Initial brightness
 
@@ -38,16 +47,25 @@ String dataIn = "";
 void setup() {
   delay(3000);  // 3 second delay for recovery
 
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  Serial.begin(38400);
+  Serial.println("Initializing Serial...");
+
+  Serial.println("Initializing FastLed Library...");
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);  //.setCorrection(TypicalLEDStrip)
   //FastLED.setMaxPowerInVoltsAndMilliamps(5, MAX_POWER_MILLIAMPS);
   FastLED.setBrightness(brightness);
-  Serial.begin(38400);
+
+  Serial.println("Initializing Bluetooth...");
   Bluetooth.begin(38400);  // Default baud rate of the Bluetooth module
 
-  initialize();
   // for (int pinNo = 0 + 3; pinNo <= 45 + 3; pinNo++) {
   //   pinMode(pinNo, INPUT);
   // }
+
+  pinMode(10, INPUT);
+  pinMode(11, INPUT);
+
+  initialize();
 }
 
 // DEMO: List of patterns to cycle through.  Each is defined as a separate function below.
@@ -76,6 +94,10 @@ void loop() {
     }
   }
 
+  if (currentMode == "T") {
+    updateTable();
+  }
+
   // In mode E we should update the demo effects
   if (currentMode == "E") {
     delay(10);
@@ -84,14 +106,28 @@ void loop() {
 }
 
 void initialize() {
-  //Serial.println(F("Initializing table..."));
+  Serial.println(F("Initializing Table Leds..."));
 
   for (int pinNo = 0; pinNo <= NUM_LEDS - 1; pinNo++) {
     leds[pinNo] = CRGB(backR, backG, backB);
     // if (digitalRead(pinNo + 3) == LOW) {
     //   leds[pinNo] = CRGB(reactiveR, reactiveG, reactiveB);
     // }
+    // if (pinNo == 41) {
+    //   leds[41] = CRGB(reactiveR, reactiveG, reactiveB);
+    // }
   }
+
+  if (digitalRead(10) == LOW) {
+    leds[10] = CRGB(reactiveR, reactiveG, reactiveB);
+  }
+  if (digitalRead(11) == LOW) {
+    leds[19] = CRGB(reactiveR, reactiveG, reactiveB);
+  }
+  if (digitalRead(12) == LOW) {
+    leds[28] = CRGB(reactiveR, reactiveG, reactiveB);
+  }
+
   FastLED.show();
   // insert a delay to keep the framerate modest
   FastLED.delay(1000 / FRAMES_PER_SECOND);
@@ -99,31 +135,25 @@ void initialize() {
 
 void setTableConfig() {
   // Format: T[K,F][RxxxGxxxBxxxE]
+  // Example: TKR128G128B001E
+  // Example: TK128G128B001E
   // T: table
   // K: background color
   // F: foreground color
   // RGB values
 
   currentMode = "T";
-  //Serial.println(F("Mode: T"));
 
   if (dataIn.substring(1, 2) == "K") {
     // K: background color
-
     //Serial.print(F("BACK: "));
-
-
     String stringR = dataIn.substring(dataIn.indexOf("R") + 1, dataIn.indexOf("G"));
-    // Serial.print(F("StringR: "));
-    // Serial.println(stringR);
     backR = stringR.toInt();
+
     String stringG = dataIn.substring(dataIn.indexOf("G") + 1, dataIn.indexOf("B"));
-    // Serial.print(F("StringG: "));
-    // Serial.println(stringG);
     backG = stringG.toInt();
+
     String stringB = dataIn.substring(dataIn.indexOf("B") + 1, dataIn.indexOf("E"));
-    // Serial.print(F("StringB: "));
-    // Serial.println(stringB);
     backB = stringB.toInt();
 
   } else if (dataIn.substring(1, 2) == "F") {
@@ -134,38 +164,61 @@ void setTableConfig() {
     reactiveG = stringG.toInt();
     String stringB = dataIn.substring(dataIn.indexOf("B") + 1, dataIn.indexOf("E"));
     reactiveB = stringB.toInt();
+  } else if (dataIn.substring(1, 2) == "D") {
+    // D: reset to Default values
+    backR = defaultBackR;
+    backG = defaultBackG;
+    backB = defaultBackB;
+    // Initial reactive color
+    reactiveR = defaultReactiveR;
+    reactiveG = defaultReactiveG;
+    reactiveB = defaultReactiveB;
   }
 
-  updateTable();
+  //updateTable();
 }
 
 void updateTable() {
-  delay(10);
-
-  // Serial.println(F("Updating Table..."));
-  // Serial.print(F("R: "));
-  // Serial.println(backR);
-  // Serial.print(F("G: "));
-  // Serial.println(backG);
-  // Serial.print(F("B: "));
-  // Serial.println(backB);
+  //delay(10);
+  //Serial.println("UPDATING TABLE");
 
   for (int pinNo = 0; pinNo <= NUM_LEDS - 1; pinNo++) {
     leds[pinNo] = CRGB(backR, backG, backB);
-    // if (digitalRead(pinNo + 3) == LOW) {
+    // if (digitalRead(pinNo + 3) == HIGH) {
     //   leds[pinNo] = CRGB(reactiveR, reactiveG, reactiveB);
     // }
+    // if (pinNo == 41) {
+    //   leds[41] = CRGB(reactiveR, reactiveG, reactiveB);
+    // }
   }
+
+  // Serial.print("PIN 10: ");
+  // Serial.println(digitalRead(10));
+
+  // Serial.print("PIN 11: ");
+  // Serial.println(digitalRead(11));
+
+  if (digitalRead(10) == LOW) {
+    leds[10] = CRGB(reactiveR, reactiveG, reactiveB);
+  }
+  if (digitalRead(11) == LOW) {
+    leds[19] = CRGB(reactiveR, reactiveG, reactiveB);
+  }
+  if (digitalRead(12) == LOW) {
+    leds[28] = CRGB(reactiveR, reactiveG, reactiveB);
+  }
+
+
   FastLED.show();
   // insert a delay to keep the framerate modest
-  FastLED.delay(1000 / FRAMES_PER_SECOND);
+  delay(20);
+  //FastLED.delay(1000 / FRAMES_PER_SECOND);
 }
 
 void setBrightnessConfig() {
   // Format: Ixxxxx
   // I: Intensity (brigthness)
   // xxxxx: brightness value
-  //Serial.println(F("Mode: I"));
   String stringBrightness = dataIn.substring(dataIn.indexOf("I") + 1, dataIn.length());
   brightness = stringBrightness.toInt();
   FastLED.setBrightness(brightness);
@@ -178,16 +231,10 @@ void setEffectConfig() {
   // R: random effect
   // C: custom effect
   // For C, the custom effect selected
-  // Serial.println(F("Mode: E"));
-  // Serial.print(F("Data: "));
-  // Serial.println(dataIn);
+
   currentMode = "E";
   effectType = dataIn.substring(1, 2);  // R: random, C: custom
   customEffect = dataIn.substring(2, dataIn.length());
-  // Serial.print(F("EffectType: "));
-  // Serial.println(effectType);
-  // Serial.print(F("CustomId: "));
-  // Serial.println(customEffect);
 }
 
 //****************************************************************************
